@@ -17,3 +17,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
   COMMAND cp ${PROJECT_NAME} ${ELF_FLOPPY}
   COMMAND truncate -s 1474560 ${ELF_FLOPPY}
 )
+
+# Generate vmdk
+set(ELF_VMDK ${PROJECT_NAME}.vmdk)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+  COMMENT "[ ** ] Building ${ELF_VMDK}"
+  COMMAND qemu-img convert ${PROJECT_NAME} -f raw -O vmdk ${ELF_VMDK}
+)
