@@ -36,7 +36,7 @@ class bootimg:
 
         # convert ts to yymmdd
         ts = time.strftime("%y%m%d", time.localtime(self._time/1000))
-        version = f"elkernel_build{ts}_{branch}_{tag}_{hash} \r\n{gcc}"
+        version = f"elkernel_build{ts}_{branch}_{tag}_{hash} \r\nwith EPL v5.11, {gcc}"
         return version.encode('utf-8')
 
     def _padding_write(self, file):
