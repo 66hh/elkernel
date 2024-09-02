@@ -1,9 +1,8 @@
 .intel_syntax noprefix
-.equ BOOTSTART, 0x07c0
-.equ KRNLNBOOT, 0x07e0
 
 .text
   .global _start
+
   .code16
 
   _start:
@@ -32,11 +31,9 @@
     cmp ax, 0
     jnz _flag_panic
 
-  # 原神，啓動！
   call _func_print_newline
   lea ax, _msg_booting
   call _func_print
-  call _func_print_newline
 
   # 進入保護模式
   xor eax, eax
@@ -48,12 +45,11 @@
   or al, 1          # 啓用保護位
   mov cr0, eax
 
-  # 起！
-  # xchg bx,bx
+  # 原神，啓動！
+  xchg bx, bx
 
-  # jmp 0x08:_krnl_MMain  # 超級遠跳轉
-  #                       # 一去不復返 2333
-
+  # 加載內核入口偏移
+  ljmp [0x8000]
   hlt
 
   # 打印字串
@@ -129,7 +125,7 @@
     # movw [si + 2], 127     # 要讀取的扇區數
     # movw [bx + 4], 0x0000  # 偏移
     movw [si + 6], 0x0800    # 段
-    movw [si + 8], 3         # LBA48 低32位 (內核在第3扇區)
+    movw [si + 8], 2         # LBA48 低32位 (內核在第3扇區)
     # movw [bx + 10], 0      # LBA48 低32位
     # movw [bx + 12], 0      # LBA48 高16位
 
@@ -169,15 +165,11 @@
       # 繼續讀取下一個塊
       jmp _read_continue
 
-    # bootim 入口函數地址
     _read_end:
-    mov ax, ds:0x8000
     ret
 
     _flag_no_bootim:
       jmp _flag_panic
-
-  ret
 
   # 寄存器 AX [AL 驅動器號, AH]
   # 寄存器 BX 目的內存段偏移

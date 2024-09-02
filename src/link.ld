@@ -6,7 +6,8 @@ ENTRY(_krnl_MMain);
 SECTIONS {
 
   .head ALIGN(4) : {
-    LONG(_krnl_MMain);
+    SHORT(_krnl_MMain);
+    SHORT(0x0008)
     LONG(0x00000000)
     LONG(0x00000000)
     LONG(0x00000000)
