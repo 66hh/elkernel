@@ -8,13 +8,23 @@
 
   # 清除寄存器
   # 不清除會導致在各個仿真器/虛擬機上行爲不同
-  mov ax, 0x0000
+  xor ax, ax
   mov ds, ax
-  mov es, ax
-  mov fs, ax
-  mov gs, ax
+  mov di, ax
 
-  mov ds:_disk_id, dl
+  movb ds:_disk_id, dl # 驅動器
+
+  mov ah, 0x08
+  int 0x13
+
+  mov dl, cl
+  and dl, 0x3f
+  and cx, 0xffc0
+
+  lea bx, _disk_info
+  movb [bx + 0], dh  # 磁頭數量
+  movb [bx + 1], dl  # 扇區數量
+  movw [bx + 2], cx  # 柱面數量
 
   # 重置顯示器
   call _func_reset_screen
@@ -73,11 +83,10 @@
   ret
 
   # 解析 bootim 並加載
-  # 返回 ax 爲 main 指針
   _func_load_bootim:
 
     # 先讀取 bootim 所在的扇區，並解析
-    lea si, _disk_lba_desc
+    lea si, _lba_dap
     movw [si + 4], 0x0000    # 偏移
     movw [si + 6], 0x07e0    # 段
     movw [si + 8], 1         # LBA48 低32位 (bootim 在第二扇區)
@@ -85,10 +94,10 @@
     call _func_read_drive
 
     # 判斷幻數 ELKERNEL
-    mov ax, es:0x7e00
-    mov bx, es:0x7e02
-    mov cx, es:0x7e04
-    mov dx, es:0x7e06
+    movw ax, ds:0x7e00
+    movw bx, ds:0x7e02
+    movw cx, ds:0x7e04
+    movw dx, ds:0x7e06
       cmp ax, 0x4c45 # EL
         jnz _flag_missing_bootim
       cmp bx, 0x454b # KE
@@ -99,29 +108,30 @@
         jnz _flag_missing_bootim
 
     # 打印版本字符串
-    mov ax, es:0x7e20
+    mov ax, ds:0x7e20
     call _func_print
     call _func_print_newline
-
-    # 0x7e10 爲 bootim 中定義內核的頁數
-    mov ax, [es:0x7e10]
-    mov ds:_bootim_pages, ax
 
     # 好的 那把整個內核全部請進來吧 (?
     # 因爲僅靠 LBA48 的低16位
     # 我們就能尋址至多 512B * 0xFFFF 約 32MB 的地址空間
     # 而一般內核大小不會超過此大小(<10MB)，所以可以擺爛！
-    lea si, _disk_lba_desc
+    lea si, _lba_dap
     movw [si + 4], 0x0000     # 偏移
     movw [si + 6], 0x0800     # 段
     movw [si + 8], 2          # LBA48 低32位 (內核在第3扇區)
-    movw ax, ds:_bootim_pages # 讀取整個 bootim
+    movw ax, ds:0x7e10        # 0x7e10 爲 bootim 中定義內核的頁數
     call _func_read_drive
     ret
 
   _func_read_drive:
     movw ds:_read_pages, 0
     movw ds:_total_pages, ax
+
+    # 是否爲軟盤啓動
+    movb dl, ds:_disk_id
+    test dl, dl
+    jz _read_begin_chs
 
     # movb [si], 0x10        # 大小
     # movb [si + 1], 0x00    # 保留
@@ -132,7 +142,7 @@
     # movw [si + 10], 0      # LBA48 低32位
     # movw [si + 12], 0      # LBA48 高16位
 
-    _read_continue:
+    _read_continue_lba:
       
       # 讀完沒有呢
       movw ax, ds:_total_pages
@@ -142,37 +152,34 @@
 
         sub ax, bx
         cmp ax, 127
-          jl _read_begin # if ( (_total_pages - _read_pages) < 127)
+          jl _read_begin_lba # if ( (_total_pages - _read_pages) < 127)
           mov ax, 127
 
-      _read_begin:
-      movw [si + 2], ax
+      _read_begin_lba:
+        movw [si + 2], ax
 
-      mov dl, ds:_disk_id # 啓動的磁盤號
-      mov ah, 0x42        # 中斷號
-      int 0x13
+        mov dl, ds:_disk_id   # 啓動的磁盤號
+        mov ah, 0x42          # 中斷號
+        int 0x13
 
-      jc _flag_panic      # 炸了就恐慌
+        jc _flag_disk_failure # 炸了就恐慌
 
-      # 更新結構體
-      movw ax, [si + 2]
-      addw ds:_read_pages, ax
-      addw [si + 4], ax
-      addw [si + 8], ax
+        # 更新結構體
+        movw ax, [si + 2]
+        addw ds:_read_pages, ax
+        addw [si + 4], ax
+        addw [si + 8], ax
 
       # 繼續讀取下一個塊
-      jmp _read_continue
+      jmp _read_continue_lba
+
+    _read_begin_chs:
+
+      # Todo
+      jmp $
 
     _read_end:
     ret
-
-  # 當前設備是否支持 LBA 模式訪問
-  # 如果不支持，則設置 CF
-  _func_supported_lba:
-    mov ax, 0x41
-    mov bx, 0x55AA
-    mov dl, ds:_disk_id
-    int 0x13
 
   _flag_missing_bootim:
     lea ax, _msg_missing_bootim
@@ -201,7 +208,12 @@
   _disk_id:
     .byte 0
 
-  _disk_lba_desc:
+  _disk_info:
+    .byte 0  # heads
+    .byte 0  # sectors
+    .2byte 0 # cylinders
+
+  _lba_dap:
     .byte 16 # 長度
     .byte 0
     .2byte 0
@@ -212,9 +224,6 @@
     .2byte 0
 
   _read_pages:
-    .2byte 0
-
-  _bootim_pages:
     .2byte 0
 
 # 全局描述符表
