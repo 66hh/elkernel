@@ -30,7 +30,7 @@ _krnl_MMain:
   mov gs, ax
   mov es, ax
 
-  mov esp, 0xFFFE   # 設置棧底
+  mov esp, 0xFFF0   # 設置棧底
 
   xor eax, eax      # 清空寄存器
   mov ebx, eax      # 為接下來的代碼做準備
