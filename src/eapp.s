@@ -53,28 +53,19 @@ _krnl_MMain:
   mov eax, offset _EStartup
   add eax, 13
 
-    # 判斷是否是 CALL 指令
-  nextinit:
-    cmp byte ptr [eax], 0xe8
-    jne endinit
-    
-    # 調用易語言的 init array
-    mov ebx, dword ptr [eax+1]
-    add ebx, eax
-    add ebx, 5
-    call ebx
-    add eax, 5
-    jmp nextinit
+  # 調用易語言的 init array
+  mov ebx, dword ptr [eax+1]
+  add ebx, eax
+  add ebx, 5
+  call ebx
 
-  endinit:
-    push 0x00         # 0x01 調用原因: 正式啓動内核
-    call _krnl_MMain_eappinfo_ecode
+  push 0x00         # 0x01 調用原因: 正式啓動内核
+  call _krnl_MMain_eappinfo_ecode
 
-    jmp $
+  jmp $
 
   _krnl_MMain_eappinfo_ecode:
     jmp dword ptr [cs:___eapp_info + 12]
-
 
 _krnl_MMSetCallback:
   mov eax, [esp + 4]
