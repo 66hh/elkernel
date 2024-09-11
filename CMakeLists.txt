@@ -7,9 +7,14 @@ set(ELKERNEL_SOURCE_DIR ${ELKERNEL_ROOT_DIR}/src)
 set(ELKERNEL_TARGET_DIR ${ELKERNEL_ROOT_DIR}/target)
 set(ELKERNEL_TOOL_DIR ${ELKERNEL_ROOT_DIR}/tools)
 set(ELKERNEL_BOOT_DIR ${ELKERNEL_ROOT_DIR}/boot)
+set(ELKERNEL_DRIVER_DIR ${ELKERNEL_ROOT_DIR}/driver)
 
 # bootloader
 include(${ELKERNEL_BOOT_DIR}/boot.cmake)
+
+# driver modules
+include(${ELKERNEL_DRIVER_DIR}/stub.cmake)
+include(${ELKERNEL_DRIVER_DIR}/neko.cmake)
 
 # elkernel
 include(${ELKERNEL_SOURCE_DIR}/elkernel.cmake)
