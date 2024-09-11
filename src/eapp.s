@@ -49,6 +49,9 @@ _krnl_MMain:
   push 0x01         # 0x01 調用原因: 初始化
   call _krnl_MMain_eappinfo_ecode
 
+  # 設置內存管理回調
+  mov _MemoryCallback, eax
+
   # 取得 _EStartup 的地址 (跳過13字節)
   mov eax, offset _EStartup
   add eax, 13
@@ -66,11 +69,6 @@ _krnl_MMain:
 
   _krnl_MMain_eappinfo_ecode:
     jmp dword ptr [cs:___eapp_info + 12]
-
-_krnl_MMSetCallback:
-  mov eax, [esp + 4]
-  mov _MemoryCallback, eax
-  ret 4
 
 _krnl_MMalloc:
   mov eax, dword ptr _MemoryCallback
