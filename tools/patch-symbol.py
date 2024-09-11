@@ -19,6 +19,8 @@ def main():
     input = sys.argv[2]
     output = sys.argv[3]
 
+    data = None
+
     with open(input, "rb") as coff:
         # search binary in the file
         data = coff.read()
@@ -26,16 +28,16 @@ def main():
         position = data.find(symbol[0])
         if position == -1:
             print("Symbol not found")
-            sys.exit(1)
+            sys.exit(0)
 
         # patch with align
         print("Patching " + split[0] + " at position: " + str(position))
         align = len(symbol[0]) - len(symbol[1])
         data = data[:position] + symbol[1] + bytearray(align) + data[position + len(symbol[0]):]
 
-        # write
-        with open(output, "wb") as out:
-            out.write(data)
+    # write
+    with open(output, "wb") as out:
+        out.write(data)
 
     pass
 
