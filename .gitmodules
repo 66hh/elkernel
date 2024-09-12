@@ -1,0 +1,3 @@
+[submodule "third-party/rucfs"]
+	path = third-party/rucfs
+	url = https://github.com/TheSnowfield/rucfs.git
