@@ -23,9 +23,9 @@ typedef struct {
   int32_t    nEAppBuildNumber;
   void*      lpfnEcode;
   void*      lpEConst;
-  void*      lpVoid0;
+  void*      uEConstSize;
   void*      lpEForm;
-  uint32_t   uVoid0;
+  uint32_t   uEFormSize;
   uint32_t   uELibInfoCount;
   LPELIBINFO *lpELibInfos;
   uint32_t   uEDllImportCount;
