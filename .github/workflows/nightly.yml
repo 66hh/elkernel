@@ -19,6 +19,11 @@ jobs:
           run-build: false
           build-dir: build
       
+      - name: Configure Build Environment
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt install gcc-multilib qemu-utils
+
       - name: Build Images
         run: |
           cd build && make
