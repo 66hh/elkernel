@@ -21,7 +21,7 @@ set(CUSTOM_IMM_PATH ${ELKERNEL_BUILD_DIR}/CMakeFiles/driver.dir)
       COMMAND docker pull ghcr.io/thesnowfield/el-buildtool:latest
     
       COMMENT "Building ${_FILE_OF_ROOT} use el-buildtool"
-      COMMAND docker run
+      COMMAND docker run --rm
         -e INPUT_FILE=workspace/${_FILE_OF_ROOT}
         -e INPUT_OPT_FAST_ARRAY=\"true\"
         -e INPUT_OPT_STACK_CHECK=\"false\"
