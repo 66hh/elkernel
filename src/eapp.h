@@ -18,8 +18,8 @@ typedef struct {
 typedef ELIBINFO* LPELIBINFO;
 
 typedef struct {
-  int32_t    nEAppMajorVersion;
-  int32_t    nEAppMinorVersion;
+  int32_t    nType;
+  int32_t    dwState;
   int32_t    nEAppBuildNumber;
   void*      lpfnEcode;
   void*      lpEConst;
