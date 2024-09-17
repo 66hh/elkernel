@@ -7,7 +7,7 @@ add_custom_target(eapp ALL
   COMMAND docker pull ghcr.io/thesnowfield/el-buildtool:latest
 
   COMMENT "Building elkernel.obj use el-buildtool"
-  COMMAND docker run
+  COMMAND docker run --rm
     -e INPUT_FILE=workspace/src/elkernel.e
     -e INPUT_OPT_FAST_ARRAY=\"true\"
     -e INPUT_OPT_STACK_CHECK=\"false\"

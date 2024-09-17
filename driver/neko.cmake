@@ -21,7 +21,7 @@ set(CUSTOM_IMM_PATH ${ELKERNEL_BUILD_DIR}/CMakeFiles/driver.dir)
       COMMAND docker pull ghcr.io/thesnowfield/el-buildtool:latest
     
       COMMENT "Building ${_FILE_OF_ROOT} use el-buildtool"
-      COMMAND docker run
+      COMMAND docker run --rm
         -e INPUT_FILE=workspace/${_FILE_OF_ROOT}
         -e INPUT_OPT_FAST_ARRAY=\"true\"
         -e INPUT_OPT_STACK_CHECK=\"false\"
@@ -31,14 +31,14 @@ set(CUSTOM_IMM_PATH ${ELKERNEL_BUILD_DIR}/CMakeFiles/driver.dir)
     
       COMMAND mv -f
         ${_FILE_DIR}/${_FILE}.obj
-        ${_NEKO_IMM}
+        ${CUSTOM_IMM_PATH}/${_FILE_OF_DRIVER}/${_FILE}.obj
     )
 
     add_custom_command(TARGET ${_FILE} POST_BUILD
       COMMENT "[ ** ] Patching symbol '_neko_load@0'"
       COMMAND python3 ${ELKERNEL_TOOL_DIR}/patch-symbol.py
         _neko_load@0:_neko_load
-        ${_NEKO_IMM} ${_NEKO_IMM}
+        ${CUSTOM_IMM_PATH}/${_FILE_OF_DRIVER}/${_FILE}.obj ${_NEKO_IMM}
     )
 
     add_custom_command(TARGET ${_FILE} POST_BUILD
@@ -56,7 +56,7 @@ set(CUSTOM_IMM_PATH ${ELKERNEL_BUILD_DIR}/CMakeFiles/driver.dir)
     )
 
     add_custom_command(TARGET ${_FILE} POST_BUILD
-      COMMENT "[ ** ] Patching symbol '_krnl_ProcessNotifyLib@0'"
+      COMMENT "[ ** ] Patching symbol '_krnl_ProcessNotifyLib@12'"
       COMMAND python3 ${ELKERNEL_TOOL_DIR}/patch-symbol.py
         _krnl_ProcessNotifyLib@12:_krnl_ProcessNotifyLib
         ${_NEKO_IMM} ${_NEKO_IMM}
